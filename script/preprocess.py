@@ -76,7 +76,8 @@ meta_cols = [
     "CellLineName", "OncotreeLineage", "OncotreePrimaryDisease",
     "OncotreeSubtype", "OncotreeCode",
     "Sex", "Age", "AgeCategory", "PrimaryOrMetastasis",
-    "SampleCollectionSite", "ModelType", "GrowthPattern", "TissueOrigin"
+    "SampleCollectionSite", "ModelType", "GrowthPattern", "TissueOrigin",
+    "PatientTreatmentDetails"
 ]
 meta_raw = model_meta.loc[common_models, meta_cols].copy()
 
@@ -90,7 +91,8 @@ meta_raw.to_csv(f"{OUT_DIR}/metadata_raw.csv")
 onehot_cols = [
     "OncotreeLineage", "OncotreePrimaryDisease", "OncotreeSubtype",
     "OncotreeCode", "Sex", "AgeCategory", "PrimaryOrMetastasis",
-    "SampleCollectionSite", "ModelType", "GrowthPattern", "TissueOrigin"
+    "SampleCollectionSite", "ModelType", "GrowthPattern", "TissueOrigin",
+    "PatientTreatmentDetails"
 ]
 meta_to_encode = meta_raw.drop(columns=["CellLineName"]).copy()
 for col in onehot_cols:

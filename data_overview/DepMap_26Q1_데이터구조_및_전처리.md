@@ -36,11 +36,12 @@
 | `GrowthPattern` | str (categorical) | Adherent / Suspension / Spheroid |
 | `TissueOrigin` | str (categorical) | Human / Mouse |
 | `EngineeredModel` | bool | 유전적으로 조작된 모델 여부 |
+| `PatientTreatmentDetails` | str (categorical) | 환자 치료 이력 (약물 조합 등, 2,154개 중 13개만 비어있지 않음) |
 
 **제외 권장 컬럼** (ML 무관 또는 중복)
 - `PatientID`, `RRID`, `CatalogNumber`, `FormulationID`, `OnboardedMedia`
 - `WTSIMasterCellID`, `SangerModelID`, `COSMICID`, `ModelIDAlias`
-- `PublicComments`, `PatientTreatmentDetails`, `EngineeredModelDetails`
+- `PublicComments`, `EngineeredModelDetails`
 
 ---
 
@@ -480,13 +481,13 @@ print(meta["OncotreeLineage"].value_counts())
 | 항목 | 값 |
 |------|----|
 | 공통 세포주 수 | **1,105** |
-| 메타데이터 피처 수 | 528 |
+| 메타데이터 피처 수 | 532 (PatientTreatmentDetails +4 추가) |
 | CNV 유전자 수 | 18,853 |
 | Expression 유전자 수 | 12,928 |
 | Mutation binary 유전자 수 | 12,175 |
 | Mutation LoF 유전자 수 | 1,055 |
 | Mutation Hotspot 유전자 수 | 21 |
-| **최종 통합 피처 수** | **45,560** |
+| **최종 통합 피처 수** | **45,564** |
 | 최종 NaN 수 | 0 |
 
 **입력 → 공통 세포주 확정 과정**
@@ -508,15 +509,15 @@ print(meta["OncotreeLineage"].value_counts())
 
 | 파일명 | 크기 | 행 × 열 | 설명 |
 |--------|------|---------|------|
-| `metadata_raw.csv` | 154K | 1,105 × 13 | 세포주 메타데이터 원본 (string 포함) |
-| `metadata_encoded.csv` | 3.4M | 1,105 × 528 | One-hot 인코딩 완료 |
+| `metadata_raw.csv` | 154K | 1,105 × 14 | 세포주 메타데이터 원본 (PatientTreatmentDetails 포함) |
+| `metadata_encoded.csv` | 3.4M | 1,105 × 532 | One-hot 인코딩 완료 (PatientTreatmentDetails 포함) |
 | `cnv_log2.csv` | 401M | 1,105 × 18,853 | CNV log2 변환, prefix: `CNV_` |
 | `expression_logTPM.csv` | 132M | 1,105 × 12,928 | 발현 log(TPM+1) 원본, prefix: `EXP_` |
 | `expression_zscore.csv` | 268M | 1,105 × 12,928 | 발현 Z-score 정규화, prefix: `EXP_` |
 | `mutation_binary.csv` | 26M | 1,105 × 12,175 | 변이 이진 행렬 (HIGH+MODERATE), prefix: `MUT_` |
 | `mutation_lof.csv` | 2.3M | 1,105 × 1,055 | LoF 변이 이진 행렬, prefix: `MUT_LoF_` |
 | `mutation_hotspot.csv` | 58K | 1,105 × 21 | Hotspot 변이 이진 행렬, prefix: `MUT_HOT_` |
-| `final_integrated.csv` | 700M | 1,105 × 45,560 | 전체 통합 행렬 |
+| `final_integrated.csv` | 700M | 1,105 × 45,564 | 전체 통합 행렬 |
 | `preprocessing_summary.csv` | 1K | — | 전처리 결과 요약 |
 
 ---
@@ -542,8 +543,8 @@ print(meta["OncotreeLineage"].value_counts())
   이진 행렬 변환 후 희귀 유전자 제거 (빈도<1%): → 12,175 genes
 
 [Metadata]
-  원본:    13 컬럼 (string 포함)
-  One-hot 인코딩 (11 범주형 컬럼): → 528 피처
+  원본:    14 컬럼 (PatientTreatmentDetails 포함)
+  One-hot 인코딩 (12 범주형 컬럼): → 532 피처
 ```
 
 ---
