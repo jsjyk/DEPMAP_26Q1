@@ -462,18 +462,93 @@ print(meta["OncotreeLineage"].value_counts())
 
 ## 6. 전처리 체크리스트
 
-- [ ] `IsDefaultEntryForModel == Yes` 필터링 완료
-- [ ] 3개 Omics 공통 세포주 확정
-- [ ] CNV: NaN 처리 및 분산 필터링
-- [ ] Expression: 저발현 유전자 제거 및 정규화
-- [ ] Mutation: AF/DP 품질 필터 → 이진 행렬 변환 → 희귀 유전자 제거
-- [ ] 컬럼명 prefix 부여 (`CNV_`, `EXP_`, `MUT_`)
-- [ ] 최종 NaN 없음 확인 (`final_df.isna().sum().sum() == 0`)
+- [x] `IsDefaultEntryForModel == Yes` 필터링 완료
+- [x] 3개 Omics 공통 세포주 확정
+- [x] CNV: NaN 처리 및 분산 필터링
+- [x] Expression: 저발현 유전자 제거 및 정규화
+- [x] Mutation: AF/DP 품질 필터 → 이진 행렬 변환 → 희귀 유전자 제거
+- [x] 컬럼명 prefix 부여 (`CNV_`, `EXP_`, `MUT_`)
+- [x] 최종 NaN 없음 확인 (`final_df.isna().sum().sum() == 0`)
 - [ ] Train/Val/Test 암종 층화 분할
 
 ---
 
-## 7. 참고
+## 7. 전처리 실행 결과 (2026-05-15)
+
+### 7-1. 전처리 요약
+
+| 항목 | 값 |
+|------|----|
+| 공통 세포주 수 | **1,105** |
+| 메타데이터 피처 수 | 528 |
+| CNV 유전자 수 | 18,853 |
+| Expression 유전자 수 | 12,928 |
+| Mutation binary 유전자 수 | 12,175 |
+| Mutation LoF 유전자 수 | 1,055 |
+| Mutation Hotspot 유전자 수 | 21 |
+| **최종 통합 피처 수** | **45,560** |
+| 최종 NaN 수 | 0 |
+
+**입력 → 공통 세포주 확정 과정**
+
+| 데이터 | 원본 행 수 | Default entry | 공통 세포주 |
+|--------|-----------|--------------|------------|
+| CNV | 1,132 프로파일 | 1,118 세포주 | |
+| Expression | 1,775 프로파일 | 1,719 세포주 | → **1,105** |
+| Mutation | 1,172,688 변이 | 1,968 세포주 | |
+| Model 메타 | 2,154 세포주 | — | |
+
+> Expression 파일의 세포주 수가 가장 적어 병목이 됨
+
+---
+
+### 7-2. 출력 파일 목록
+
+출력 경로: `DepMap_26Q1_preprocessed/`
+
+| 파일명 | 크기 | 행 × 열 | 설명 |
+|--------|------|---------|------|
+| `metadata_raw.csv` | 154K | 1,105 × 13 | 세포주 메타데이터 원본 (string 포함) |
+| `metadata_encoded.csv` | 3.4M | 1,105 × 528 | One-hot 인코딩 완료 |
+| `cnv_log2.csv` | 401M | 1,105 × 18,853 | CNV log2 변환, prefix: `CNV_` |
+| `expression_logTPM.csv` | 132M | 1,105 × 12,928 | 발현 log(TPM+1) 원본, prefix: `EXP_` |
+| `expression_zscore.csv` | 268M | 1,105 × 12,928 | 발현 Z-score 정규화, prefix: `EXP_` |
+| `mutation_binary.csv` | 26M | 1,105 × 12,175 | 변이 이진 행렬 (HIGH+MODERATE), prefix: `MUT_` |
+| `mutation_lof.csv` | 2.3M | 1,105 × 1,055 | LoF 변이 이진 행렬, prefix: `MUT_LoF_` |
+| `mutation_hotspot.csv` | 58K | 1,105 × 21 | Hotspot 변이 이진 행렬, prefix: `MUT_HOT_` |
+| `final_integrated.csv` | 700M | 1,105 × 45,560 | 전체 통합 행렬 |
+| `preprocessing_summary.csv` | 1K | — | 전처리 결과 요약 |
+
+---
+
+### 7-3. 각 전처리 단계별 피처 변화
+
+```
+[CNV]
+  원본:    1,132 profiles × 19,956 genes
+  default: 1,118 cells
+  NaN>20% 제거: 19,956 → (유지)
+  분산 필터 (threshold=0.01): → 18,853 genes  (-5.5%)
+
+[Expression]
+  원본:    1,775 profiles × 19,216 genes
+  default: 1,719 cells
+  저발현 필터 (발현율<20%): 19,216 → ~13,500
+  분산 하위 10% 제거: → 12,928 genes  (-32.7% 총)
+
+[Mutation]
+  원본:    1,172,688 변이 레코드
+  품질 필터 (AF≥0.1, DP≥10, VepImpact∈{HIGH,MODERATE}): 대폭 감소
+  이진 행렬 변환 후 희귀 유전자 제거 (빈도<1%): → 12,175 genes
+
+[Metadata]
+  원본:    13 컬럼 (string 포함)
+  One-hot 인코딩 (11 범주형 컬럼): → 528 피처
+```
+
+---
+
+## 9. 참고
 
 | 파일 | 파이프라인 | 기준 유전체 |
 |------|-----------|------------|
