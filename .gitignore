@@ -1,0 +1,5 @@
+# Large files excluded from git (>100MB)
+DepMap_26Q1_preprocessed/final_integrated.csv
+DepMap_26Q1_preprocessed/cnv_log2.csv
+DepMap_26Q1_preprocessed/expression_zscore.csv
+DepMap_26Q1_preprocessed/expression_logTPM.csv
