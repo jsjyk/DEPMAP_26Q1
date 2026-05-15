@@ -3,6 +3,7 @@ from .dataset import OmicsDataset, collate_fn
 from .tokenizer import GeneTokenizer
 from .ppi import PPIGraph
 from .attention import PPIAttention, PPITransformerLayer
+from .pathway import PathwayDB, PathwayPooling
 
 __all__ = [
     "GeneVocab",
@@ -10,4 +11,5 @@ __all__ = [
     "GeneTokenizer",
     "PPIGraph",
     "PPIAttention", "PPITransformerLayer",
+    "PathwayDB", "PathwayPooling",
 ]
